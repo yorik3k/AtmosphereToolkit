@@ -1,0 +1,10 @@
+{
+	"RemapUnityFiles": 
+	{
+		"Module.AtmosphereToolkit.cpp.obj": [
+			"AtmosphereToolkit.gen.cpp.obj",
+			"AtmosphereToolkit.init.gen.cpp.obj",
+			"AtmosphereToolkit.cpp.obj"
+		]
+	}
+}
