@@ -1,5 +1,6 @@
 // Includes
 #include "AtmosphereToolkit.h"
+#include "StaticSceneOptimizer.h"
 #include "Editor.h"
 #include "Engine/World.h"
 #include "Engine/DirectionalLight.h"
@@ -183,7 +184,7 @@ void CreatePresetDataTable()
     ///
     /// PRESSETS TABLE
     /// 
-    
+
     //Swamp  ExpB Sat  Con
     Add(TEXT("Swamp"), TEXT("Swamp"), 5.0f, 4500.0f, -60.0f, 0.15f, 0.3f, 0.5f, 0.2f, 1.0f, 0.2f, 0.0f, true, -0.5f, 0.8f, 1.1f, 0.5f);
 
@@ -220,7 +221,7 @@ void FAtmosphereToolkitModule::StartupModule()
                 UToolMenu* Menu = UToolMenus::Get()->ExtendMenu("LevelEditor.MainMenu.Window");
 
                 ///
-                /// Static Scene Optimizer (in-dev on 16-07-2026)
+                /// Static Scene Optimizer 
                 /// 
                 FToolMenuSection& OptimizerSection = Menu->AddSection("SceneOptimizer",
                     FText::FromString("Scene Optimizer"));
@@ -235,7 +236,7 @@ void FAtmosphereToolkitModule::StartupModule()
                             {
                                 TSharedRef<SWindow> OptWindow = SNew(SWindow)
                                     .Title(FText::FromString("Static Scene Optimizer"))
-                                    .ClientSize(FVector2D(500, 400))
+                                    .ClientSize(FVector2D(500, 450))
                                     .SizingRule(ESizingRule::UserSized);
 
                                 TSharedRef<SVerticalBox> OptContent = SNew(SVerticalBox);
@@ -252,42 +253,66 @@ void FAtmosphereToolkitModule::StartupModule()
                                 OptContent->AddSlot().AutoHeight().Padding(20, 0)
                                     [
                                         SNew(STextBlock)
-                                            .Text(FText::FromString("This module automates optimization of static meshes:\n- Auto Cull Distance by mesh size\n- Grouping by material\n- Convert to Instanced Static Meshes\n\nSelect meshes in the viewport and click Optimize."))
+                                            .Text(FText::FromString("Automate optimization of static meshes:\n- Auto Cull Distance by mesh size\n- Convert to Hierarchical Instanced Static Mesh (HISM)\n- World Partition grid optimization\n\nSelect static meshes in the viewport and click Optimize."))
                                             .AutoWrapText(true)
                                     ];
 
                                 // Разделитель
                                 OptContent->AddSlot().AutoHeight().Padding(20, 10)
                                     [
+                                        SNew(SSeparator)
+                                    ];
+
+                                // Статус
+                                OptContent->AddSlot().AutoHeight().Padding(20, 0, 20, 10)
+                                    [
                                         SNew(STextBlock)
-                                            .Text(FText::FromString("Status: Under Development"))
-                                            .ColorAndOpacity(FLinearColor(1.0f, 0.8f, 0.2f))
+                                            .Text(FText::FromString("Status: Ready"))
+                                            .ColorAndOpacity(FLinearColor(0.2f, 0.8f, 0.2f))
                                     ];
 
-                                // Кнопка-заглушка
-                                OptContent->AddSlot().AutoHeight().Padding(20, 0)
+                                // ============================================
+                                // КНОПКИ СТАТИЧЕСКОГО ОПТИМИЗАТОРА
+                                // ============================================
+
+                                // 1. Auto Cull Distance
+                                OptContent->AddSlot().AutoHeight().Padding(20, 5)
                                     [
                                         SNew(SButton)
-                                            .Text(FText::FromString("Auto Cull Distance (WIP)"))
+                                            .Text(FText::FromString("Auto Cull Distance"))
                                             .OnClicked_Lambda([]()
                                                 {
-                                                    UE_LOG(LogTemp, Warning, TEXT("[AtmosphereToolkit] Auto Cull Distance - coming soon. :)"));
+                                                    UStaticSceneOptimizer::ApplyAutoCullDistanceToSelected();
                                                     return FReply::Handled();
                                                 })
                                     ];
 
-                                OptContent->AddSlot().AutoHeight().Padding(10, 0)
+                                // 2. Convert to HISM
+                                OptContent->AddSlot().AutoHeight().Padding(20, 5)
                                     [
                                         SNew(SButton)
-                                            .Text(FText::FromString("Convert to ISM (WIP)"))
+                                            .Text(FText::FromString("Convert to HISM"))
                                             .OnClicked_Lambda([]()
                                                 {
-                                                    UE_LOG(LogTemp, Warning, TEXT("[AtmosphereToolkit] Convert to ISM - coming soon. :)"));
+                                                    UStaticSceneOptimizer::ConvertSelectedToHISM();
                                                     return FReply::Handled();
                                                 })
                                     ];
 
-                                OptContent->AddSlot().AutoHeight().Padding(10, 0)
+                                // 3. Optimize World Partition Grid
+                                OptContent->AddSlot().AutoHeight().Padding(20, 5)
+                                    [
+                                        SNew(SButton)
+                                            .Text(FText::FromString("Optimize World Partition Grid"))
+                                            .OnClicked_Lambda([]()
+                                                {
+                                                    UStaticSceneOptimizer::OptimizeWorldPartitionGrid();
+                                                    return FReply::Handled();
+                                                })
+                                    ];
+
+                                // 4. Merge (WIP)
+                                OptContent->AddSlot().AutoHeight().Padding(20, 5)
                                     [
                                         SNew(SButton)
                                             .Text(FText::FromString("Merge Selected Meshes (WIP)"))
@@ -296,6 +321,21 @@ void FAtmosphereToolkitModule::StartupModule()
                                                     UE_LOG(LogTemp, Warning, TEXT("[AtmosphereToolkit] Merge Meshes - coming soon. :)"));
                                                     return FReply::Handled();
                                                 })
+                                    ];
+
+                                // Разделитель
+                                OptContent->AddSlot().AutoHeight().Padding(20, 15)
+                                    [
+                                        SNew(SSeparator)
+                                    ];
+
+                                // Подсказка
+                                OptContent->AddSlot().AutoHeight().Padding(20, 5)
+                                    [
+                                        SNew(STextBlock)
+                                            .Text(FText::FromString("Tip: Select multiple static meshes in the viewport first."))
+                                            .ColorAndOpacity(FLinearColor(0.5f, 0.5f, 0.5f))
+                                            .AutoWrapText(true)
                                     ];
 
                                 OptWindow->SetContent(OptContent);
@@ -446,19 +486,19 @@ void FAtmosphereToolkitModule::StartupModule()
                                         TileCount++;
                                     };
 
-                                    // Автоматически строим плитки из DataTable
-                                    UDataTable* DT = LoadObject<UDataTable>(nullptr,
-                                        TEXT("/Game/AtmosphereToolkit/DT_Presets.DT_Presets"));
-                                    if (DT)
+                                // Автоматически строим плитки из DataTable
+                                UDataTable* DT = LoadObject<UDataTable>(nullptr,
+                                    TEXT("/Game/AtmosphereToolkit/DT_Presets.DT_Presets"));
+                                if (DT)
+                                {
+                                    TArray<FName> RowNames = DT->GetRowNames();
+                                    for (const FName& RowName : RowNames)
                                     {
-                                        TArray<FName> RowNames = DT->GetRowNames();
-                                        for (const FName& RowName : RowNames)
-                                        {
-                                            FAtmospherePresetData* Row = DT->FindRow<FAtmospherePresetData>(RowName, TEXT(""));
-                                            FString Desc = Row ? Row->PresetName.ToString() : TEXT("Custom Preset");
-                                            AddPresetTile(RowName, Desc);
-                                        }
+                                        FAtmospherePresetData* Row = DT->FindRow<FAtmospherePresetData>(RowName, TEXT(""));
+                                        FString Desc = Row ? Row->PresetName.ToString() : TEXT("Custom Preset");
+                                        AddPresetTile(RowName, Desc);
                                     }
+                                }
 
                                 // Разделитель
                                 PresetContent->AddSlot().AutoHeight().Padding(10, 15)
@@ -649,7 +689,7 @@ void FAtmosphereToolkitModule::StartupModule()
                                                                 ]
                                                         ];
 
-                                                    
+
 
                                                     PressetUsingInfo->SetContent(Scroll);
                                                     FSlateApplication::Get().AddWindow(PressetUsingInfo);
@@ -822,176 +862,176 @@ void FAtmosphereToolkitModule::StartupModule()
                                                     return FReply::Handled();
                                                 })
                                     ];
-                                    // Кнопка удаления
-                                    PresetContent->AddSlot().AutoHeight().Padding(10, 5)
-                                        [
-                                            SNew(SButton)
-                                                .HAlign(HAlign_Center)
-                                                .OnClicked_Lambda([]()
+                                // Кнопка удаления
+                                PresetContent->AddSlot().AutoHeight().Padding(10, 5)
+                                    [
+                                        SNew(SButton)
+                                            .HAlign(HAlign_Center)
+                                            .OnClicked_Lambda([]()
+                                                {
+                                                    TSharedRef<SWindow> DelWindow = SNew(SWindow)
+                                                        .Title(FText::FromString("Delete Presets"))
+                                                        .ClientSize(FVector2D(350, 400))
+                                                        .SizingRule(ESizingRule::UserSized);
+
+                                                    TSharedRef<SScrollBox> DelScroll = SNew(SScrollBox);
+                                                    TSharedRef<SVerticalBox> DelContent = SNew(SVerticalBox);
+
+                                                    DelScroll->AddSlot()[DelContent];
+
+                                                    UDataTable* DT = LoadObject<UDataTable>(nullptr,
+                                                        TEXT("/Game/AtmosphereToolkit/DT_Presets.DT_Presets"));
+
+                                                    TArray<TSharedPtr<SCheckBox>> CheckBoxes;
+                                                    TArray<FName> RowNames;
+
+                                                    if (DT)
                                                     {
-                                                        TSharedRef<SWindow> DelWindow = SNew(SWindow)
-                                                            .Title(FText::FromString("Delete Presets"))
-                                                            .ClientSize(FVector2D(350, 400))
-                                                            .SizingRule(ESizingRule::UserSized);
-
-                                                        TSharedRef<SScrollBox> DelScroll = SNew(SScrollBox);
-                                                        TSharedRef<SVerticalBox> DelContent = SNew(SVerticalBox);
-
-                                                        DelScroll->AddSlot()[DelContent];
-
-                                                        UDataTable* DT = LoadObject<UDataTable>(nullptr,
-                                                            TEXT("/Game/AtmosphereToolkit/DT_Presets.DT_Presets"));
-
-                                                        TArray<TSharedPtr<SCheckBox>> CheckBoxes;
-                                                        TArray<FName> RowNames;
-
-                                                        if (DT)
+                                                        RowNames = DT->GetRowNames();
+                                                        for (const FName& Name : RowNames)
                                                         {
-                                                            RowNames = DT->GetRowNames();
-                                                            for (const FName& Name : RowNames)
-                                                            {
-                                                                TSharedPtr<SCheckBox> CheckBox;
-                                                                DelContent->AddSlot().AutoHeight().Padding(5)
-                                                                    [
-                                                                        SNew(SHorizontalBox)
-                                                                            + SHorizontalBox::Slot().AutoWidth()
-                                                                            [
-                                                                                SAssignNew(CheckBox, SCheckBox)
-                                                                            ]
-                                                                            + SHorizontalBox::Slot().FillWidth(1.0f).Padding(5, 0, 0, 0)
-                                                                            [
-                                                                                SNew(STextBlock).Text(FText::FromName(Name))
-                                                                            ]
-                                                                    ];
-                                                                CheckBoxes.Add(CheckBox);
-                                                            }
+                                                            TSharedPtr<SCheckBox> CheckBox;
+                                                            DelContent->AddSlot().AutoHeight().Padding(5)
+                                                                [
+                                                                    SNew(SHorizontalBox)
+                                                                        + SHorizontalBox::Slot().AutoWidth()
+                                                                        [
+                                                                            SAssignNew(CheckBox, SCheckBox)
+                                                                        ]
+                                                                        + SHorizontalBox::Slot().FillWidth(1.0f).Padding(5, 0, 0, 0)
+                                                                        [
+                                                                            SNew(STextBlock).Text(FText::FromName(Name))
+                                                                        ]
+                                                                ];
+                                                            CheckBoxes.Add(CheckBox);
                                                         }
+                                                    }
 
-                                                        DelContent->AddSlot().AutoHeight().Padding(10)
-                                                            [
-                                                                SNew(SButton)
-                                                                    .OnClicked_Lambda([DT, RowNames, CheckBoxes, DelWindow]()
-                                                                        {
-                                                                            if (!DT) return FReply::Handled();
-
-                                                                            for (int32 i = 0; i < RowNames.Num(); ++i)
-                                                                            {
-                                                                                if (CheckBoxes[i]->IsChecked())
-                                                                                {
-                                                                                    DT->RemoveRow(RowNames[i]);
-                                                                                }
-                                                                            }
-                                                                            DT->MarkPackageDirty();
-
-                                                                            FNotificationInfo Info(FText::FromString("Presets deleted. Reopen window."));
-                                                                            Info.ExpireDuration = 3.0f;
-                                                                            FSlateNotificationManager::Get().AddNotification(Info);
-
-                                                                            DelWindow->RequestDestroyWindow();
-                                                                            return FReply::Handled();
-                                                                        })
-                                                                    [
-                                                                        SNew(SHorizontalBox)
-                                                                            + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(0, 0, 5, 0)
-                                                                            [
-                                                                                SNew(SImage)
-                                                                                    .Image(FAppStyle::GetBrush("Icons.Delete"))
-                                                                                    .DesiredSizeOverride(FVector2D(16, 16))
-                                                                            ]
-                                                                            + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center)
-                                                                            [
-                                                                                SNew(STextBlock)
-                                                                                    .Text(FText::FromString("Delete Selected"))
-                                                                            ]
-                                                                    ]
-                                                            ];
-
-                                                        DelWindow->SetContent(DelScroll);
-                                                        FSlateApplication::Get().AddWindow(DelWindow);
-                                                        return FReply::Handled();
-                                                    })
-                                                [
-                                                    SNew(SHorizontalBox)
-                                                        + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(0, 0, 5, 0)
+                                                    DelContent->AddSlot().AutoHeight().Padding(10)
                                                         [
-                                                            SNew(SImage)
-                                                                .Image(FAppStyle::GetBrush("Icons.Delete"))
-                                                                .DesiredSizeOverride(FVector2D(16, 16))
-                                                        ]
-                                                        + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center)
+                                                            SNew(SButton)
+                                                                .OnClicked_Lambda([DT, RowNames, CheckBoxes, DelWindow]()
+                                                                    {
+                                                                        if (!DT) return FReply::Handled();
+
+                                                                        for (int32 i = 0; i < RowNames.Num(); ++i)
+                                                                        {
+                                                                            if (CheckBoxes[i]->IsChecked())
+                                                                            {
+                                                                                DT->RemoveRow(RowNames[i]);
+                                                                            }
+                                                                        }
+                                                                        DT->MarkPackageDirty();
+
+                                                                        FNotificationInfo Info(FText::FromString("Presets deleted. Reopen window."));
+                                                                        Info.ExpireDuration = 3.0f;
+                                                                        FSlateNotificationManager::Get().AddNotification(Info);
+
+                                                                        DelWindow->RequestDestroyWindow();
+                                                                        return FReply::Handled();
+                                                                    })
+                                                                [
+                                                                    SNew(SHorizontalBox)
+                                                                        + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(0, 0, 5, 0)
+                                                                        [
+                                                                            SNew(SImage)
+                                                                                .Image(FAppStyle::GetBrush("Icons.Delete"))
+                                                                                .DesiredSizeOverride(FVector2D(16, 16))
+                                                                        ]
+                                                                        + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center)
+                                                                        [
+                                                                            SNew(STextBlock)
+                                                                                .Text(FText::FromString("Delete Selected"))
+                                                                        ]
+                                                                ]
+                                                        ];
+
+                                                    DelWindow->SetContent(DelScroll);
+                                                    FSlateApplication::Get().AddWindow(DelWindow);
+                                                    return FReply::Handled();
+                                                })
+                                            [
+                                                SNew(SHorizontalBox)
+                                                    + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(0, 0, 5, 0)
+                                                    [
+                                                        SNew(SImage)
+                                                            .Image(FAppStyle::GetBrush("Icons.Delete"))
+                                                            .DesiredSizeOverride(FVector2D(16, 16))
+                                                    ]
+                                                    + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center)
+                                                    [
+                                                        SNew(STextBlock)
+                                                            .Text(FText::FromString("Delete Presets"))
+                                                    ]
+                                            ]
+                                    ];
+                                // Разделитель
+                                PresetContent->AddSlot().AutoHeight().Padding(10, 5)
+                                    [
+                                        SNew(SSeparator)
+                                    ];
+                                // Кнопка "About"
+                                PresetContent->AddSlot().AutoHeight().Padding(10, 5)
+                                    [
+                                        SNew(SButton)
+                                            .Text(FText::FromString("About the Developer"))
+                                            .HAlign(HAlign_Center)
+                                            .OnClicked_Lambda([]()
+                                                {
+                                                    TSharedRef<SWindow> AboutWindow = SNew(SWindow)
+                                                        .Title(FText::FromString("About"))
+                                                        .ClientSize(FVector2D(350, 250))
+                                                        .SizingRule(ESizingRule::UserSized);
+
+                                                    TSharedRef<SVerticalBox> AboutContent = SNew(SVerticalBox);
+
+                                                    AboutContent->AddSlot().AutoHeight().Padding(10)
                                                         [
                                                             SNew(STextBlock)
-                                                                .Text(FText::FromString("Delete Presets"))
-                                                        ]
-                                                ]
-                                        ];
-                                    // Разделитель
-                                    PresetContent->AddSlot().AutoHeight().Padding(10, 5)
-                                        [
-                                            SNew(SSeparator)
-                                        ];
-                                    // Кнопка "About"
-                                    PresetContent->AddSlot().AutoHeight().Padding(10, 5)
-                                        [
-                                            SNew(SButton)
-                                                .Text(FText::FromString("About the Developer"))
-                                                .HAlign(HAlign_Center)
-                                                .OnClicked_Lambda([]()
-                                                    {
-                                                        TSharedRef<SWindow> AboutWindow = SNew(SWindow)
-                                                            .Title(FText::FromString("About"))
-                                                            .ClientSize(FVector2D(350, 250))
-                                                            .SizingRule(ESizingRule::UserSized);
+                                                                .Text(FText::FromString("Atmosphere Toolkit"))
+                                                                .Font(FSlateFontInfo(FPaths::EngineContentDir() / TEXT("Slate/Fonts/Roboto-Bold.ttf"), 14))
+                                                        ];
 
-                                                        TSharedRef<SVerticalBox> AboutContent = SNew(SVerticalBox);
+                                                    AboutContent->AddSlot().AutoHeight().Padding(10, 0)
+                                                        [
+                                                            SNew(STextBlock)
+                                                                .Text(FText::FromString("Developed by @yorik3k"))
+                                                                .AutoWrapText(true)
+                                                        ];
 
-                                                        AboutContent->AddSlot().AutoHeight().Padding(10)
-                                                            [
-                                                                SNew(STextBlock)
-                                                                    .Text(FText::FromString("Atmosphere Toolkit"))
-                                                                    .Font(FSlateFontInfo(FPaths::EngineContentDir() / TEXT("Slate/Fonts/Roboto-Bold.ttf"), 14))
-                                                            ];
+                                                    AboutContent->AddSlot().AutoHeight().Padding(10, 5)
+                                                        [
+                                                            SNew(STextBlock)
+                                                                .Text(FText::FromString("Links:"))
+                                                                .Font(FSlateFontInfo(FPaths::EngineContentDir() / TEXT("Slate/Fonts/Roboto-Bold.ttf"), 10))
+                                                        ];
 
-                                                        AboutContent->AddSlot().AutoHeight().Padding(10, 0)
-                                                            [
-                                                                SNew(STextBlock)
-                                                                    .Text(FText::FromString("Developed by @yorik3k"))
-                                                                    .AutoWrapText(true)
-                                                            ];
+                                                    // Кнопка-ссылка (открывает URL в браузере)
+                                                    AboutContent->AddSlot().AutoHeight().Padding(10, 2)
+                                                        [
+                                                            SNew(SButton)
+                                                                .Text(FText::FromString("GitHub"))
+                                                                .OnClicked_Lambda([]()
+                                                                    {
+                                                                        FPlatformProcess::LaunchURL(TEXT("https://github.com/yorik3k"), nullptr, nullptr);
+                                                                        return FReply::Handled();
+                                                                    })
+                                                        ];
 
-                                                        AboutContent->AddSlot().AutoHeight().Padding(10, 5)
-                                                            [
-                                                                SNew(STextBlock)
-                                                                    .Text(FText::FromString("Links:"))
-                                                                    .Font(FSlateFontInfo(FPaths::EngineContentDir() / TEXT("Slate/Fonts/Roboto-Bold.ttf"), 10))
-                                                            ];
 
-                                                        // Кнопка-ссылка (открывает URL в браузере)
-                                                        AboutContent->AddSlot().AutoHeight().Padding(10, 2)
-                                                            [
-                                                                SNew(SButton)
-                                                                    .Text(FText::FromString("GitHub"))
-                                                                    .OnClicked_Lambda([]()
-                                                                        {
-                                                                            FPlatformProcess::LaunchURL(TEXT("https://github.com/yorik3k"), nullptr, nullptr);
-                                                                            return FReply::Handled();
-                                                                        })
-                                                            ];
 
-                                                        
-
-                                                        AboutWindow->SetContent(AboutContent);
-                                                        FSlateApplication::Get().AddWindow(AboutWindow);
-                                                        return FReply::Handled();
-                                                    })
-                                        ];
+                                                    AboutWindow->SetContent(AboutContent);
+                                                    FSlateApplication::Get().AddWindow(AboutWindow);
+                                                    return FReply::Handled();
+                                                })
+                                    ];
 
                                 PresetWindow->SetContent(PresetScroll);
                                 FSlateApplication::Get().AddWindow(PresetWindow);
                             })
                     ))
                 );
-                                
+
                 FToolMenuSection& ManualSection = Menu->AddSection("ManualSettings",
                     FText::FromString("Manual-mode"));
 
@@ -1093,7 +1133,7 @@ void FAtmosphereToolkitModule::StartupModule()
                                                             ]
                                                     ]
                                                 // Intensity
-                                                    + SVerticalBox::Slot().AutoHeight().Padding(0, 2)
+                                                + SVerticalBox::Slot().AutoHeight().Padding(0, 2)
                                                     [
                                                         SNew(SHorizontalBox)
                                                             + SHorizontalBox::Slot().AutoWidth()
@@ -1130,24 +1170,24 @@ void FAtmosphereToolkitModule::StartupModule()
                                             .Padding(10)
                                             [
                                                 SNew(SVerticalBox)
-                                                    
-                                                        +SVerticalBox::Slot().AutoHeight().Padding(0, 0, 0, 5)
+
+                                                    + SVerticalBox::Slot().AutoHeight().Padding(0, 0, 0, 5)
+                                                    [
+                                                        SNew(SHorizontalBox)
+                                                            + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(0, 0, 5, 0)
                                                             [
-                                                                SNew(SHorizontalBox)
-                                                                    + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(0, 0, 5, 0)
-                                                                    [
-                                                                        SNew(SImage)
-                                                                            .Image(FAppStyle::GetBrush("ClassIcon.ExponentialHeightFog"))
-                                                                            .DesiredSizeOverride(FVector2D(16, 16))
-                                                                    ]
-                                                                    + SHorizontalBox::Slot().FillWidth(1.0f).VAlign(VAlign_Center)
-                                                                    [
-                                                                        SNew(STextBlock)
-                                                                            .Text(FText::FromString("Fog"))
-                                                                            .Font(FSlateFontInfo(FPaths::EngineContentDir() / TEXT("Slate/Fonts/Roboto-Bold.ttf"), 10))
-                                                                    ]
+                                                                SNew(SImage)
+                                                                    .Image(FAppStyle::GetBrush("ClassIcon.ExponentialHeightFog"))
+                                                                    .DesiredSizeOverride(FVector2D(16, 16))
                                                             ]
-                                                    + SVerticalBox::Slot().AutoHeight().Padding(0, 2)
+                                                            + SHorizontalBox::Slot().FillWidth(1.0f).VAlign(VAlign_Center)
+                                                            [
+                                                                SNew(STextBlock)
+                                                                    .Text(FText::FromString("Fog"))
+                                                                    .Font(FSlateFontInfo(FPaths::EngineContentDir() / TEXT("Slate/Fonts/Roboto-Bold.ttf"), 10))
+                                                            ]
+                                                    ]
+                                                + SVerticalBox::Slot().AutoHeight().Padding(0, 2)
                                                     [
                                                         SNew(SHorizontalBox)
                                                             + SHorizontalBox::Slot().AutoWidth()
@@ -1216,7 +1256,7 @@ void FAtmosphereToolkitModule::StartupModule()
                                                                     .Font(FSlateFontInfo(FPaths::EngineContentDir() / TEXT("Slate/Fonts/Roboto-Bold.ttf"), 10))
                                                             ]
                                                     ]
-                                                    + SVerticalBox::Slot().AutoHeight().Padding(0, 2)
+                                                + SVerticalBox::Slot().AutoHeight().Padding(0, 2)
                                                     [
                                                         SNew(SHorizontalBox)
                                                             + SHorizontalBox::Slot().AutoWidth()
@@ -1253,7 +1293,7 @@ void FAtmosphereToolkitModule::StartupModule()
                                                                     .Font(FSlateFontInfo(FPaths::EngineContentDir() / TEXT("Slate/Fonts/Roboto-Bold.ttf"), 10))
                                                             ]
                                                     ]
-                                                    + SVerticalBox::Slot().AutoHeight().Padding(0, 2)
+                                                + SVerticalBox::Slot().AutoHeight().Padding(0, 2)
                                                     [
                                                         SNew(SHorizontalBox)
                                                             + SHorizontalBox::Slot().AutoWidth()
@@ -1356,7 +1396,7 @@ void FAtmosphereToolkitModule::StartupModule()
                                                             return FReply::Handled();
                                                         })
                                             ]
-                                    
+
                                     ];
                                 // Dev status
                                 Content->AddSlot().AutoHeight().Padding(10, 5)

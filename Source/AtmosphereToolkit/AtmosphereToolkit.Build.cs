@@ -10,11 +10,16 @@ public class AtmosphereToolkit : ModuleRules
         {
             "Core",
             "CoreUObject",
-            "Engine",
+            "Engine",          // <--- ÂÑÅ ÊËÀÑÑÛ HISM ÓÆÅ ÇÄÅÑÜ
             "UnrealEd",
             "ToolMenus",
             "Slate",
-            "SlateCore"
+            "SlateCore",
+            "EditorStyle",
+            "InputCore"
         });
+
+        // PrivateDependencyModuleNames ÍÅ ÍÓÆÅÍ!
+        // Îñòàâëÿåì ïóñòûì èëè óäàëÿåì
     }
 }
