@@ -1,0 +1,24 @@
+{
+    "FileVersion": 3,
+    "Version": 1,
+    "VersionName": "1.0",
+    "FriendlyName": "Atmosphere Optimize Toolkit",
+    "Description": "Atmosphere presets and scene optimization tools",
+    "Category": "Editor",
+    "CreatedBy": "yorik3k",
+    "CreatedByURL": "",
+    "DocsURL": "",
+    "MarketplaceURL": "",
+    "SupportURL": "",
+    "CanContainContent": true,
+    "IsBetaVersion": false,
+    "IsExperimentalVersion": false,
+    "Installed": false,
+    "Modules": [
+        {
+            "Name": "Atmosphere_OptimizeToolkit",
+            "Type": "Editor",
+            "LoadingPhase": "Default"
+        }
+    ]
+}
