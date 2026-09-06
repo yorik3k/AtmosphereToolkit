@@ -44,6 +44,9 @@ public:
     UEditableText* FogStartDistanceInput;
 
     UPROPERTY(meta = (BindWidget))
+    UEditableText* FogColorRGBInput;
+
+    UPROPERTY(meta = (BindWidget))
     UCheckBox* VolumetricFogCheckbox;
 
     // Sky
@@ -80,10 +83,10 @@ public:
     UButton* Button_Apply_3;
 
     UPROPERTY(meta = (BindWidget))
-    UButton* Button_Apply;      // ← 4-я кнопка
+    UButton* Button_Apply;      
 
     UPROPERTY(meta = (BindWidget))
-    UButton* Button_Apply_4;    // ← 5-я кнопка
+    UButton* Button_Apply_4;
 
     // ============================================
     // FUNCTIONS
@@ -105,6 +108,11 @@ private:
     float GetFloatFromInput(UEditableText* Input, float DefaultValue = 0.0f);
     void SetInputText(UEditableText* Input, float Value);
     void SetCheckBoxChecked(UCheckBox* CheckBox, bool bChecked);
+    
+
+    FLinearColor GetColorFromInput(UEditableText* Input, FLinearColor DefaultColor = FLinearColor::White);
+    void SetColorInput(UEditableText* Input, FLinearColor Color);
+
     void ShowNotification(const FString& Message, float Duration = 2.0f);
 
     UFUNCTION()

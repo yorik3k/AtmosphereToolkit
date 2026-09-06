@@ -159,8 +159,11 @@ void UAtmosphereEditorWidget::LoadCurrentSettings()
             SetInputText(FogHeightFalloffInput, Fog->GetComponent()->FogHeightFalloff);
             SetInputText(FogMaxOpacityInput, Fog->GetComponent()->FogMaxOpacity);
             SetInputText(FogStartDistanceInput, Fog->GetComponent()->StartDistance);
+
+            // Устанавливаем дефолтный цвет (позже можно будет читать из компонента)
+            SetColorInput(FogColorRGBInput, FLinearColor(0.5f, 0.6f, 0.8f));
+
             SetCheckBoxChecked(VolumetricFogCheckbox, Fog->GetComponent()->bEnableVolumetricFog);
-            UE_LOG(LogTemp, Warning, TEXT("[AtmosphereToolkit] Fog found: Density=%.3f"), Fog->GetComponent()->FogDensity);
             break;
         }
     }
@@ -210,6 +213,7 @@ void UAtmosphereEditorWidget::ApplyManualSettings()
     Data.FogHeightFalloff = GetFloatFromInput(FogHeightFalloffInput, 0.2f);
     Data.FogMaxOpacity = GetFloatFromInput(FogMaxOpacityInput, 1.0f);
     Data.FogStartDistance = GetFloatFromInput(FogStartDistanceInput, 0.0f);
+    Data.FogColor = GetColorFromInput(FogColorRGBInput, FLinearColor(0.5f, 0.6f, 0.8f)); 
     Data.bEnableVolumetricFog = VolumetricFogCheckbox ? VolumetricFogCheckbox->IsChecked() : false;
     Data.SkyLightIntensity = GetFloatFromInput(SkyIntensityInput, 1.0f);
     Data.ExposureBias = GetFloatFromInput(ExposureBiasInput, 0.0f);
@@ -248,6 +252,7 @@ void UAtmosphereEditorWidget::ResetToDefault()
     SetInputText(FogHeightFalloffInput, 0.2f);
     SetInputText(FogMaxOpacityInput, 1.0f);
     SetInputText(FogStartDistanceInput, 0.0f);
+    SetColorInput(FogColorRGBInput, FLinearColor(0.5f, 0.6f, 0.8f));
     SetInputText(SkyIntensityInput, 1.0f);
     SetInputText(ExposureBiasInput, 0.0f);
     SetInputText(SaturationInput, 1.0f);
@@ -257,6 +262,41 @@ void UAtmosphereEditorWidget::ResetToDefault()
 
     UAtmosphereToolkit::ResetToDefault();
     ShowNotification(TEXT("Reset to default!"), 2.0f);
+}
+
+// ============================================
+// COLOR HELPERS
+// ============================================
+FLinearColor UAtmosphereEditorWidget::GetColorFromInput(UEditableText* Input, FLinearColor DefaultColor)
+{
+    if (!Input) return DefaultColor;
+
+    FString Text = Input->GetText().ToString();
+    Text.TrimStartAndEndInline();
+
+    if (Text.IsEmpty()) return DefaultColor;
+
+    TArray<FString> Parts;
+    Text.ParseIntoArray(Parts, TEXT(","));
+
+    if (Parts.Num() == 3)
+    {
+        float R = FCString::Atof(*Parts[0]);
+        float G = FCString::Atof(*Parts[1]);
+        float B = FCString::Atof(*Parts[2]);
+        return FLinearColor(R, G, B);
+    }
+
+    return DefaultColor;
+}
+
+void UAtmosphereEditorWidget::SetColorInput(UEditableText* Input, FLinearColor Color)
+{
+    if (Input)
+    {
+        FString Text = FString::Printf(TEXT("%.2f,%.2f,%.2f"), Color.R, Color.G, Color.B);
+        Input->SetText(FText::FromString(Text));
+    }
 }
 
 // ============================================
@@ -339,6 +379,7 @@ void UAtmosphereEditorWidget::ApplyPresetByName(FName PresetName)
         SetInputText(FogHeightFalloffInput, Row->FogHeightFalloff);
         SetInputText(FogMaxOpacityInput, Row->FogMaxOpacity);
         SetInputText(FogStartDistanceInput, Row->FogStartDistance);
+        SetColorInput(FogColorRGBInput, Row->FogColor);
         SetInputText(SkyIntensityInput, Row->SkyLightIntensity);
         SetInputText(ExposureBiasInput, Row->ExposureBias);
         SetInputText(SaturationInput, Row->Saturation);

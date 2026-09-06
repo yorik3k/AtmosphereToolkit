@@ -1,0 +1,13 @@
+﻿Intermediate/
+Binaries/
+Saved/
+DerivedDataCache/
+.vs/
+*.sln
+*.VC.db
+*.suo
+*.user
+Thumbs.db
+*.tmp
+*.log
+*.bak

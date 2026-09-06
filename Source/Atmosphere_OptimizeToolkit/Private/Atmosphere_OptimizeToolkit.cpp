@@ -43,7 +43,7 @@ void FAtmosphere_OptimizeToolkitModule::StartupModule()
                                 {
                                     TSharedRef<SWindow> Window = SNew(SWindow)
                                         .Title(FText::FromString("Atmosphere Editor"))
-                                        .ClientSize(FVector2D(1920, 1080))
+                                        .ClientSize(FVector2D(544, 313))
                                         .SizingRule(ESizingRule::UserSized)
                                         .SupportsMinimize(true)
                                         .SupportsMaximize(false);
