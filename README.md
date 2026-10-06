@@ -41,7 +41,11 @@ This module works with **optimization**. Its main focus is to speed up optimizat
 2. Rebuild the project.
 3. Find the plugin in **Window → Atmosphere Toolkit** or **Scene Optimizer**.
 
----
+## License
+
+This project is licensed under the **MIT License** — see the [LICENSE](LICENSE) file for details.
+
+**Note:** Unreal Engine is a trademark of Epic Games, Inc. Use of this plugin requires a valid Unreal Engine license.
 
 ## Compatibility
 
